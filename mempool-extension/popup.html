@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bitcoin Fee Rates</title>
+  <style>
+    body {
+      background-color: black;
+      color: orange;
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 10px;
+      width: 350px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    /* Adjusting the icon size */
+    #icon {
+      width: 32px; /* Thumbnail size */
+      height: auto;
+      margin-right: 10px;
+    }
+
+    .icon-text-container {
+      display: flex;
+      align-items: center;
+      margin-bottom: 10px;
+      width: 100%;
+      justify-content: flex-start;
+    }
+    
+    .small-text {
+      font-size: 12px;
+      color: lightgray;
+    }
+    
+    h1 {
+      font-size: 20px;
+      margin: 10px 0;
+      text-align: center;
+    }
+    
+    .fee-container {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    
+    .fastest-fee {
+      width: 90%;
+      background-color: rgba(255, 165, 0, 0.1); /* Light orange background */
+      border: 2px solid orange;
+      padding: 10px;
+      border-radius: 5px;
+      font-size: 24px;
+      font-weight: bold;
+      text-align: center;
+    }
+    
+    .lower-fees {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+    
+    .lower-fee {
+      flex: 1;
+      margin: 0 5px;
+      padding: 5px;
+      border: 2px solid orange;
+      background-color: rgba(255, 165, 0, 0.05);
+      border-radius: 5px;
+      text-align: center;
+    }
+    
+    #chartContainer {
+      border: 2px solid orange;
+      padding: 10px;
+      background-color: black;
+      margin-top: 10px;
+      width: 100%;
+    }
+    
+    /* Style the chart lines */
+    .chartjs-line {
+      stroke: orange !important; /* Chart.js line color */
+    }
+    
+    .chartjs-point {
+      fill: orange !important; /* Chart.js point color */
+    }
+    
+    /* Status text color */
+    #status {
+      margin-top: 10px;
+      color: orange;
+    }
+  </style>
+</head>
+<body>
+  <div class="icon-text-container">
+    <img id="icon" src="greenrock.png" alt="Icon" />
+    <span class="small-text">Built by a Noderock for the BTC Degens</span>
+  </div>
+  <h1>Bitcoin Fee Rates</h1>
+  <div class="fee-container">
+    <div class="fastest-fee" id="fastestFeeRate">
+      <span class="fee-label">High Priority:</span>
+      <strong id="fastestFeeValue"><br>Loading...<br></strong>
+    </div>
+    <div class="lower-fees">
+      <div class="lower-fee" id="halfHourFeeRate">
+        <span class="fee-label">Medium Priority:</span>
+        <span id="halfHourFeeValue"><br>Loading...<br></span>
+      </div>
+      <div class="lower-fee" id="hourFeeRate">
+        <span class="fee-label">Low Priority:</span>
+        <span id="hourFeeValue"><br>Loading...<br></span>
+      </div>
+      <div class="lower-fee" id="minimumFeeRate">
+        <span class="fee-label">Base Fee:</span>
+        <span id="minimumFeeValue"><br>Loading...<br></span>
+      </div>
+    </div>
+  </div>
+  <div id="chartContainer">
+    <canvas id="myChart" width="300" height="200"></canvas>
+  </div>
+  <div id="status">Status</div> 
+  <script src="libs/chart.umd.js"></script>
+  <script src="libs/chartjs-adapter-date-fns.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
