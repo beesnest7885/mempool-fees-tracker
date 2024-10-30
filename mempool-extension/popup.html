@@ -5,9 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Bitcoin Fee Rates</title>
   <style>
+    
+
     body {
-      background-color: black;
-      color: orange;
+      background-color: #2c2b2b; /* Dark background */
+      color: #ffa500; /* Orange text */
       font-family: Arial, sans-serif;
       margin: 0;
       padding: 10px;
@@ -17,6 +19,7 @@
       align-items: center;
       height: 100vh; /* Full viewport height */
       box-sizing: border-box;
+      overflow: hidden; /* Prevent overflow */
     }
     
     /* Adjusting the icon size */
@@ -50,20 +53,21 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 1px;
     }
 
     .fastest-fee {
       width: 90%;
-      background-color: rgba(255, 165, 0, 0.1); /* Light orange background */
-      border: 2px solid orange;
-      padding: 15px; /* Adjust padding for a better fit */
-      border-radius: 5px;
+      background-color: rgba(245, 162, 7, 0.1); /* Light orange background */
+      border: 2px solid #ffa500; /* Orange border */
+      padding: 10px; /* Adjust padding for a better fit */
+      border-radius: 10px; /* Rounded corners */
       text-align: center;
       font-size: 20px; /* Increase font size to fit container */
       font-weight: bold;
       line-height: 1; /* Adjust line height for optimal spacing */
       margin-bottom: 10px;
+      box-shadow: 0 2px 2px rgb(200, 117, 0); /* Add shadow for depth */
     }
 
 
@@ -71,24 +75,24 @@
       display: flex;
       justify-content: space-around; /* Center-aligns the fee boxes */
       width: 100%;
-      margin-bottom: 2px; /* Added margin to separate from the chart */
+      margin-bottom: 5px; /* Added margin to separate from the chart */
     }
 
     .lower-fee {
       flex: 1;
-      margin: 5 5px;
+      margin: 0 5px;
       padding: 5px;
-      border: 2px solid orange;
-      background-color: rgba(255, 165, 0, 0.05);
-      border-radius: 5px;
+      border: 2px solid #ffa500; /* Orange border */
+      background-color: rgba(255, 165, 0, 0.05); /* Light orange background */
+      border-radius: 10px; /* Rounded corners */
       text-align: center;
       display: flex;
       flex-direction: column; /* Stack items vertically */
       justify-content: flex-start; /* Align items at the top */
+      box-shadow: 0 2px 2px rgb(200, 117, 0); /* Add shadow for depth */
     }
 
     .fee-label {
-      
       font-weight: bold;
       white-space: nowrap; /* Keeps label on one line */
     }
@@ -102,30 +106,33 @@
 
     
   #chartContainer {
-    border: 2px solid orange;
-    padding: 5px;
-    background-color: black;
+    border: 2px solid #ffa500; /* Orange border */
+    padding: 10px;
+    background-color: #2c2b2b; /* Dark background */
     width: 100%;
     flex-grow: 1; /* Expand to fill remaining space */
     display: flex;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
+    border-radius: 10px; /* Rounded corners */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Add shadow for depth */
   }
     
     /* Style the chart lines */
     .chartjs-line {
-      stroke: orange !important; /* Chart.js line color */
+      stroke: #ffa500 !important; /* Chart.js line color */
     }
     
     .chartjs-point {
-      fill: orange !important; /* Chart.js point color */
+      fill: #ffa500 !important; /* Chart.js point color */
     }
     
     /* Status text color */
     #status {
-      margin-top: 1px;
-      color: orange;
+      margin-top: 5px;
+      margin-bottom: 5px;
+      color: #ffa500; /* Orange text */
       text-align: center;
       width: 100%;
     }
