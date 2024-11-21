@@ -1,4 +1,3 @@
-// Constants for badge colors
 const BADGE_COLORS = {
     LOW: '#00FF00',    // Green
     MEDIUM: '#FFA500', // Orange
@@ -23,6 +22,7 @@ function updateBadgeAndStorage(data) {
     chrome.action.setBadgeBackgroundColor({ color: badgeColor });
 
     chrome.storage.local.set({ feeData: data, lastUpdated: Date.now() });
+    console.log('Badge updated with fee:', fastestFee, 'Color:', badgeColor);
 }
 
 // Retry logic with exponential backoff
@@ -47,13 +47,24 @@ async function fetchWithRetries(url, retries = 3, backoff = 1000) {
 // Fetch data and update badge
 async function fetchDataAndUpdateBadge() {
     try {
+        console.log('Fetching data...');
         const data = await fetchWithRetries('https://mempool.space/api/v1/fees/recommended');
+        console.log('Data fetched:', data);
         updateBadgeAndStorage(data);
     } catch (error) {
         console.error('Error fetching and updating badge:', error);
     }
 }
 
-// Initial fetch and set interval for periodic updates
+// Set up an alarm to fetch data every 1 minute
+chrome.alarms.create('fetchData', { periodInMinutes: 1 });
+
+// Listen for the alarm and fetch data when it triggers
+chrome.alarms.onAlarm.addListener((alarm) => {
+    if (alarm.name === 'fetchData') {
+        fetchDataAndUpdateBadge();
+    }
+});
+
+// Initial fetch when the service worker starts
 fetchDataAndUpdateBadge();
-setInterval(fetchDataAndUpdateBadge, 20000); // Update every minute
