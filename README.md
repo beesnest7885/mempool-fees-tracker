@@ -1,4 +1,8 @@
 # mempool-fees-tracker
-btc mempool fees tracker
-simple fee tracker
-fees rate tracked and displayed in the extension bar with pop up which includes 24hrs chart of fee rates
+btc mempool fees tracker.
+
+current fee rate displayed in the extension bar.
+
+pop up window displays fee rate, time since last block mined and easy read chart.
+
+chart is interactive. clicking it cycles through 1 day, 1 week and 1 month historical fee data.
