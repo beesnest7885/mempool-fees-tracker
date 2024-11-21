@@ -1,186 +1,290 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Bitcoin Fee Rates</title>
-  <style>
-    body {
-      background: linear-gradient(135deg, #2c2b2b, #1e1e1e); /* Subtle gradient */
-      color: #ffa500; /* Orange text */
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 5px;
-      width: 350px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      height: 100vh; /* Full viewport height */
-      box-sizing: border-box;
-      overflow: hidden; /* Prevent overflow */
+document.addEventListener('DOMContentLoaded', init);
+
+const FETCH_INTERVAL = 5000; // Increased frequency of checks to every 5 seconds
+const API_URLS = {
+    RECOMMENDED_FEES: 'https://mempool.space/api/v1/fees/recommended',
+    LAST_24H_BLOCKS: 'https://mempool.space/api/v1/mining/blocks/fee-rates/24h',
+    LAST_1W_BLOCKS: 'https://mempool.space/api/v1/mining/blocks/fee-rates/1w',
+    LAST_1M_BLOCKS: 'https://mempool.space/api/v1/mining/blocks/fee-rates/1m',
+    BLOCKS: 'https://mempool.space/api/v1/blocks'
+};
+
+let lastBlockHeight = null;
+let lastBlockTimestamp = null;
+let myChart = null;
+let currentTimeWindow = '24h'; // Default time window
+
+function init() {
+    const feesElement = document.getElementById('fastestFeeRate');
+    const statusElement = document.getElementById('status');
+    const lastBlockTimeDisplay = document.createElement('span');
+
+    if (!feesElement || !statusElement) {
+        console.error('One or more elements are missing in the DOM. Please check your HTML.');
+        return;
     }
 
-    h1 {
-      font-size: 20px;
-      margin: 10px 0;
-      text-align: center;
-      border-bottom: 2px solid #ffa500; /* Underline */
-      padding-bottom: 5px;
+    statusElement.appendChild(lastBlockTimeDisplay);
+    setupChart();
+
+    if (navigator.onLine) {
+        fetchData();
+        updateOnlineStatus();
+    } else {
+        displayOfflineMessage();
     }
 
-    #icon {
-      width: 32px; /* Thumbnail size */
-      height: auto;
-      margin-right: 10px;
-      transition: transform 0.3s ease-in-out; /* Animation */
+    setInterval(fetchData, FETCH_INTERVAL);
+    setInterval(updateLastBlockClock, 1000, lastBlockTimeDisplay); // Update the clock every second
+    window.addEventListener('online', onOnline);
+    window.addEventListener('offline', displayOfflineMessage);
+
+    // Add event listener to cycle through time windows on chart click
+    document.getElementById('chartContainer').addEventListener('click', cycleTimeWindow);
+}
+
+function updateLastBlockClock(lastBlockTimeDisplay) {
+    if (lastBlockTimestamp) {
+        const now = new Date();
+        const timeDiff = now - lastBlockTimestamp;
+        const minutes = Math.floor(timeDiff / 60000);
+        const seconds = Math.floor((timeDiff % 60000) / 1000);
+        lastBlockTimeDisplay.textContent = `Last Block: ${minutes}m ${seconds}s ago`;
+    } else {
+        lastBlockTimeDisplay.textContent = 'Last Block: N/A';
+    }
+}
+
+function fetchData() {
+    if (navigator.onLine) {
+        fetchDataFromAPI(API_URLS.RECOMMENDED_FEES, displayFeeRates).catch(handleFetchError);
+        fetchDataFromAPI(getCurrentTimeWindowAPI(), processLatestBlockData).catch(handleFetchError);
+        updateOnlineStatus();
+    }
+}
+
+async function fetchDataFromAPI(url, callback) {
+    if (!navigator.onLine) {
+        displayOfflineMessage();
+        return;
+    }
+    try {
+        const response = await fetch(url);
+        if (!response.ok) throw new Error(`Failed to fetch data from ${url}`);
+        const data = await response.json();
+        console.log('Fetched data from API:', data);
+        callback(data);
+    } catch (error) {
+        handleFetchError(error);
+    }
+}
+
+function processLatestBlockData(data) {
+    console.log('Processing latest block data:', data);
+    const blockData = data.map(block => ({
+        x: new Date(block.timestamp * 1000),
+        y: block.avgFee_50
+    }));
+    addBlockDataToChart(blockData);
+}
+
+function displayFeeRates(data) {
+    const fastestFeeValue = document.getElementById('fastestFeeValue');
+    const halfHourFeeValue = document.getElementById('halfHourFeeValue');
+    const hourFeeValue = document.getElementById('hourFeeValue');
+    const minimumFeeValue = document.getElementById('minimumFeeValue');
+
+    if (fastestFeeValue) fastestFeeValue.textContent = `${data.fastestFee} sat/vB`;
+    if (halfHourFeeValue) halfHourFeeValue.textContent = `${data.halfHourFee} sat/vB`;
+    if (hourFeeValue) hourFeeValue.textContent = `${data.hourFee} sat/vB`;
+    if (minimumFeeValue) minimumFeeValue.textContent = `${data.minimumFee} sat/vB`;
+
+    localStorage.setItem('lastKnownFees', JSON.stringify(data));
+}
+
+function handleFetchError(error) {
+    console.error('Fetch Error:', error);
+    const statusElement = document.getElementById('status');
+    if (statusElement) statusElement.textContent = 'An error occurred while fetching data.';
+}
+
+function displayOfflineMessage() {
+    const statusElement = document.getElementById('status');
+    if (statusElement) statusElement.textContent = 'Offline: Unable to fetch fee data. Showing last known data if available.';
+    const storedFees = localStorage.getItem('lastKnownFees');
+    if (storedFees) {
+        displayFeeRates(JSON.parse(storedFees));
+    }
+}
+
+function onOnline() {
+    const statusElement = document.getElementById('status');
+    if (statusElement) statusElement.textContent = 'Online: Fetching latest fee data...';
+    fetchData();
+}
+
+function updateOnlineStatus() {
+    const lastBlockTimeDisplay = document.querySelector('#status span');
+    if (navigator.onLine) {
+        fetch(API_URLS.BLOCKS)
+            .then(response => response.json())
+            .then(data => {
+                console.log('Fetched block data:', data);
+                const lastBlock = data[0];
+                if (lastBlock && lastBlock.timestamp) {
+                    lastBlockTimestamp = new Date(lastBlock.timestamp * 1000);
+                    if (lastBlockTimeDisplay) lastBlockTimeDisplay.textContent = `Last Block: ${formatTimeAgo(lastBlockTimestamp)}`;
+                    if (lastBlockHeight !== lastBlock.height) {
+                        fetchDataFromAPI(getCurrentTimeWindowAPI(), processLatestBlockData).catch(handleFetchError);
+                        lastBlockHeight = lastBlock.height;
+                    }
+                } else {
+                    console.error('Invalid block data:', lastBlock);
+                    if (lastBlockTimeDisplay) lastBlockTimeDisplay.textContent = 'Error fetching last block time';
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching block timestamp:", error);
+                if (lastBlockTimeDisplay) lastBlockTimeDisplay.textContent = 'Error fetching last block time';
+            });
+    } else {
+        if (lastBlockTimeDisplay) lastBlockTimeDisplay.textContent = 'Offline';
+    }
+}
+
+function formatTimeAgo(lastBlockTimestamp) {
+    const now = new Date();
+    const timeDiff = now - lastBlockTimestamp;
+    const minutes = Math.floor(timeDiff / 60000);
+    const seconds = Math.floor((timeDiff % 60000) / 1000);
+    return `${minutes}m ${seconds}s ago`;
+}
+
+function setupChart() {
+    const ctx = document.getElementById('myChart').getContext('2d');
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: `Fee Rates (sats/vB) - ${currentTimeWindow}`, // Include time window in the label
+                data: [],
+                borderColor: 'orange', // Customize the line color here
+                backgroundColor: 'rgba(0, 100, 0, 0.5)', // Dark translucent green
+                borderWidth: 1,
+                fill: true,
+                tension: 0.4,
+                pointBackgroundColor: 'orange', // Customize the point color here
+                pointRadius: 1, // Smaller point radius
+                pointHoverRadius: 2 // Smaller hover radius
+            }]
+        },
+        options: {
+            maintainAspectRatio: false, // Ensure chart does not expand out of container
+            scales: {
+                x: {
+                    type: 'time',
+                    time: {
+                        unit: 'hour',
+                        tooltipFormat: 'MMM dd, HH:mm',
+                        displayFormats: {
+                            hour: 'HH:mm',
+                            day: 'MMM dd'
+                        }
+                    },
+                    ticks: {
+                        callback: function(value, index, values) {
+                            const date = new Date(value);
+                            if (date.getHours() === 0) {
+                                return date.toLocaleDateString(); // Show date at midnight
+                            }
+                            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); // Show time otherwise
+                        }
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    min: 0,
+                    max: 24,
+                }
+            }
+        }
+    });
+}
+
+function addBlockDataToChart(blocks) {
+    console.log('Adding block data to chart:', blocks);
+
+    if (blocks.length > 1) {
+        myChart.data.labels = [];
+        myChart.data.datasets[0].data = [];
     }
 
-    #icon:hover {
-      transform: rotate(20deg); /* Rotate on hover */
+    blocks.forEach(block => {
+        const blockTimestamp = block.x;
+        const blockFeeInSatsPerVB = block.y;
+
+        if (blockFeeInSatsPerVB && !isNaN(blockFeeInSatsPerVB)) {
+            myChart.data.labels.push(blockTimestamp);
+            myChart.data.datasets[0].data.push(parseFloat(blockFeeInSatsPerVB.toFixed(2)));
+        }
+    });
+
+    if (myChart.data.labels.length > 144) {
+        myChart.data.labels.splice(0, myChart.data.labels.length - 144);
+        myChart.data.datasets[0].data.splice(0, myChart.data.datasets[0].data.length - 144);
     }
 
-    .icon-text-container {
-      display: flex;
-      align-items: center;
-      margin-bottom: 10px;
-      width: 100%;
-      justify-content: flex-start;
+    const minFee = Math.min(...myChart.data.datasets[0].data);
+    const maxFee = Math.max(...myChart.data.datasets[0].data);
+    const padding = 10;
+
+    myChart.options.scales.y.min = Math.max(minFee - padding, 0);
+    myChart.options.scales.y.max = maxFee + padding;
+
+    myChart.update();
+    console.log('Chart updated with new data:', myChart.data);
+}
+
+function cycleTimeWindow() {
+    const timeWindows = ['24h', '1w', '1m'];
+    const currentIndex = timeWindows.indexOf(currentTimeWindow);
+    const nextIndex = (currentIndex + 1) % timeWindows.length;
+    currentTimeWindow = timeWindows[nextIndex];
+    console.log('Switched to time window:', currentTimeWindow);
+
+    // Update chart time window
+    switch (currentTimeWindow) {
+        case '24h':
+            myChart.options.scales.x.time.unit = 'hour';
+            myChart.options.scales.x.time.stepSize = 1;
+            break;
+        case '1w':
+            myChart.options.scales.x.time.unit = 'day';
+            myChart.options.scales.x.time.stepSize = 1;
+            break;
+        case '1m':
+            myChart.options.scales.x.time.unit = 'day';
+            myChart.options.scales.x.time.stepSize = 2;
+            break;
     }
 
-    .small-text {
-      font-size: 12px;
-      color: lightgray;
-    }
+    // Update the dataset label with the new time window
+    myChart.data.datasets[0].label = `Fee Rates (sats/vB) - ${currentTimeWindow}`;
 
-    .fee-container {
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-bottom: 10px;
-    }
+    fetchData(); // Fetch new data for the selected time window
+    myChart.update();
+}
 
-    .fastest-fee {
-      width: 90%;
-      background-color: rgba(245, 162, 7, 0.1); /* Light orange background */
-      border: 2px solid #ffa500; /* Orange border */
-      padding: 10px;
-      border-radius: 10px; /* Rounded corners */
-      text-align: center;
-      font-size: 20px;
-      font-weight: bold;
-      line-height: 1.5;
-      margin-bottom: 10px;
-      box-shadow: 0 2px 4px rgba(200, 117, 0, 0.5); /* Add shadow for depth */
+function getCurrentTimeWindowAPI() {
+    switch (currentTimeWindow) {
+        case '24h':
+            return API_URLS.LAST_24H_BLOCKS;
+        case '1w':
+            return API_URLS.LAST_1W_BLOCKS;
+        case '1m':
+            return API_URLS.LAST_1M_BLOCKS;
+        default:
+            return API_URLS.LAST_24H_BLOCKS;
     }
-
-    .lower-fees {
-      display: flex;
-      justify-content: space-around;
-      width: 100%;
-      margin-bottom: 10px;
-    }
-
-    .lower-fee {
-      flex: 1;
-      margin: 0 5px;
-      padding: 5px;
-      border: 2px solid #ffa500;
-      background-color: rgba(255, 165, 0, 0.05);
-      border-radius: 10px;
-      text-align: center;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-start;
-      box-shadow: 0 2px 4px rgba(255, 165, 0, 0.5);
-      transition: background-color 0.3s, box-shadow 0.3s;
-    }
-
-    .lower-fee:hover {
-      background-color: rgba(255, 165, 0, 0.15); /* Brighter on hover */
-      box-shadow: 0 4px 8px rgba(255, 165, 0, 0.7); /* Deeper shadow */
-    }
-
-    .fee-label {
-      font-weight: bold;
-      white-space: nowrap;
-    }
-
-    .fee-value {
-      font-size: 16px;
-      font-weight: bold;
-      margin-top: 5px;
-    }
-
-    #chartContainer {
-      padding: 10px;
-      background-color: #343434; /* Dark background */
-      width: 100%;
-      flex-grow: 1; /* Expand to fill remaining space */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-sizing: border-box;
-      border-radius: 10px; /* Rounded corners */
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); /* Add shadow for depth */
-    }
-
-    #status {
-      margin-top: 5px;
-      margin-bottom: 5px;
-      color: #ffa500;
-      text-align: center;
-      width: 100%;
-    }
-
-    button, a {
-      color: #ffa500;
-      background: transparent;
-      border: 1px solid #ffa500;
-      border-radius: 5px;
-      padding: 5px 10px;
-      text-decoration: none;
-      transition: background-color 0.3s, color 0.3s;
-    }
-
-    button:hover, a:hover {
-      background-color: #ffa500;
-      color: #2c2b2b;
-    }
-  </style>
-</head>
-<body>
-  <div class="icon-text-container">
-    <img id="icon" src="greenrock.png" alt="Icon" />
-    <span class="small-text">Built by a Noderock for the BTC Degens</span>
-  </div>
-  <h1>Bitcoin Fee Rates</h1>
-  <div class="fee-container">
-    <div class="fastest-fee" id="fastestFeeRate">
-      <span class="fee-label">High Priority:</span>
-      <strong id="fastestFeeValue">Loading...</strong>
-    </div>
-    <div class="lower-fees">
-      <div class="lower-fee" id="halfHourFeeRate">
-        <span class="fee-label">Medium Priority:</span>
-        <span id="halfHourFeeValue">Loading...</span>
-      </div>
-      <div class="lower-fee" id="hourFeeRate">
-        <span class="fee-label">Low Priority:</span>
-        <span id="hourFeeValue">Loading...</span>
-      </div>
-      <div class="lower-fee" id="minimumFeeRate">
-        <span class="fee-label">Base Fee:</span>
-        <span id="minimumFeeValue">Loading...</span>
-      </div>
-    </div>
-  </div>
-  <div id="status">Status</div>
-  <div id="chartContainer">
-    <canvas id="myChart" width="300" height="200"></canvas>
-  </div>
-  <script src="libs/chart.umd.js"></script>
-  <script src="libs/chartjs-adapter-date-fns.js"></script>
-  <script src="popup.js"></script>
-</body>
-</html>
+}
