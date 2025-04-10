@@ -1,0 +1,441 @@
+body {
+  background: linear-gradient(135deg, #2c2b2b, #1e1e1e); /* Subtle gradient */
+  color: #ffa500; /* Orange text */
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 5px;
+  width: 350px;
+  min-height: 400px; /* Set minimum height */
+  max-height: max-content; /* Dynamic height */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+  overflow-y: auto; /* Allow vertical scrolling */
+  overflow-x: hidden; /* Prevent horizontal scrolling */
+}
+
+h1 {
+  display: flex;
+  align-items: center;
+  font-size: 20px;
+  margin: 0;
+  text-align: right;
+  border-bottom: 2px solid #ffa500; /* Underline */
+  padding-bottom: 5px;
+  color: #ffa500; /* Keep your existing title color */
+}
+
+#icon {
+  width: 32px; /* Thumbnail size */
+  height: auto;
+  margin-right: 10px;
+  transition: transform 0.3s ease-in-out; /* Animation */
+  transform-origin: center center; /* Center the rotation */
+}
+
+#icon:hover {
+  transform: rotate(20deg); /* Only rotate, no scaling */
+}
+
+.bitcoin-logo {
+  width: 20px;
+  height: auto;
+  margin-right: 0; /* Remove right margin */
+  vertical-align: middle; /* Align in the middle of the text */
+  position: relative;
+  top: -1px; /* Fine-tune vertical positioning */
+}
+
+.icon-text-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.menu-links {
+  display: flex;
+  margin: 0;
+  padding: 0;
+}
+
+.menu-link {
+  color: #ffa500;
+  background: transparent;
+  border: 1px solid #ffa500;
+  border-radius: 5px;
+  padding: 5px 10px;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.menu-link:hover {
+  background-color: #ffa500;
+  color: #2c2b2b;
+}
+
+.fee-container {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.fastest-fee {
+  width: 90%;
+  background-color: rgba(245, 162, 7, 0.1); /* Light orange background */
+  border: 2px solid #ffa500; /* Orange border */
+  padding: 10px;
+  border-radius: 10px; /* Rounded corners */
+  text-align: center;
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 1.5;
+  margin-bottom: 10px;
+  box-shadow: 0 2px 4px rgba(200, 117, 0, 0.5); /* Add shadow for depth */
+}
+
+.lower-fees {
+  display: flex;
+  justify-content: space-around;
+  width: 100%;
+  margin-bottom: 10px;
+}
+
+.lower-fee {
+  flex: 1;
+  margin: 0 5px;
+  padding: 5px;
+  border: 2px solid #ffa500;
+  background-color: rgba(255, 165, 0, 0.05);
+  border-radius: 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  box-shadow: 0 2px 4px rgba(255, 165, 0, 0.5);
+  transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.lower-fee:hover {
+  background-color: rgba(255, 165, 0, 0.15); /* Brighter on hover */
+  box-shadow: 0 4px 8px rgba(255, 165, 0, 0.7); /* Deeper shadow */
+}
+
+.fee-label {
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+.fee-value {
+  font-size: 16px;
+  font-weight: bold;
+  margin-top: 5px;
+}
+
+#chartContainer {
+  width: 100%;
+  height: 150px;
+  background-color: #343434;
+  display: block;
+  position: relative;
+  margin: 10px 0;
+  border-radius: 5px;
+}
+
+#myChart {
+  display: block;
+  position: relative;
+  width: 100% !important; 
+  height: 100% !important;
+}
+
+#status {
+  margin-top: 3px;
+  margin-bottom: 3px;
+  color: #ffa500;
+  text-align: center;
+  width: 100%;
+  font-size: 12px; /* Smaller font */
+  min-height: 16px; /* Fixed height to prevent layout shifts */
+}
+
+.noderock-link {
+  display: flex;
+  align-items: center;
+  text-decoration: none;
+  color: #ffa500;
+  margin-right: 10px;
+  /* Remove the transform transition to prevent resizing */
+}
+
+.noderock-link:hover {
+  /* Remove transform:scale to prevent resizing */
+  /* Instead, use a subtle effect that doesn't change dimensions */
+  filter: brightness(1.2);
+}
+
+.built-by {
+  font-size: 12px;
+  margin-left: 5px;
+  font-weight: bold;
+  color: #ffa500;
+}
+
+.time-window-selector {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.time-window-label {
+  margin-right: 10px;
+  font-size: 14px;
+  color: #ffa500;
+}
+
+.time-window-buttons {
+  display: flex;
+  gap: 5px;
+}
+
+.time-window-btn {
+  background: transparent;
+  border: 1px solid #ffa500;
+  color: #ffa500;
+  border-radius: 5px;
+  padding: 3px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.time-window-btn:hover {
+  background-color: rgba(255, 165, 0, 0.2);
+}
+
+.time-window-btn.active {
+  background-color: #ffa500;
+  color: #000;
+  font-weight: bold;
+}
+
+/* Add fixed dimensions to footer to prevent layout shifts */
+.footer {
+  width: 100%;
+  height: 32px; /* Match the height of the icon */
+  display: flex;
+  justify-content: center;
+  padding: 5px 0;
+  margin-top: 5px;
+  border-top: 1px solid rgba(255, 165, 0, 0.3);
+}
+
+/* Fee Alert styles - more compact layout */
+.fee-alert-container {
+  width: 100%;
+  margin: 3px 0;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.fee-alert-summary {
+  background-color: rgba(255, 165, 0, 0.1);
+  border: 1px solid #ffa500;
+  color: #ffa500;
+  padding: 6px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-weight: bold;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.fee-alert-summary::after {
+  content: "▼";
+  font-size: 10px;
+}
+
+details[open] .fee-alert-summary::after {
+  content: "▲";
+}
+
+.fee-alert-content {
+  background-color: rgba(255, 165, 0, 0.05);
+  border: 1px solid #ffa500;
+  border-top: none;
+  border-radius: 0 0 5px 5px;
+  padding: 6px;
+  animation: expandContent 0.3s ease-in-out;
+}
+
+@keyframes expandContent {
+  from { 
+    max-height: 0;
+    opacity: 0;
+  }
+  to { 
+    max-height: 200px;
+    opacity: 1;
+  }
+}
+
+/* Horizontal layout for the form */
+.fee-alert-form {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  grid-gap: 6px;
+  align-items: center;
+}
+
+.fee-alert-form label {
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.threshold-input-container {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ffa500;
+  border-radius: 3px;
+  overflow: hidden;
+  background: rgba(255, 165, 0, 0.1);
+  height: 24px;
+  width: 65px;
+}
+
+#alertThreshold {
+  flex-grow: 1;
+  border: none;
+  padding: 4px;
+  background: transparent;
+  color: #ffa500;
+  text-align: right;
+  width: 40px;
+  font-size: 12px;
+}
+
+.fee-unit {
+  padding: 0 4px;
+  background: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+  font-size: 10px;
+}
+
+#setAlertBtn, #clearAlertBtn {
+  padding: 4px 6px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.current-alert {
+  grid-column: 1 / -1;
+  padding: 5px;
+  border-radius: 3px;
+  background-color: rgba(255, 165, 0, 0.1);
+  text-align: center;
+  color: #ffa500;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Style for active alert in summary */
+.alert-active-summary {
+  background-color: rgba(0, 200, 83, 0.1) !important;
+  border-color: #00c853 !important;
+}
+
+.alert-active {
+  background-color: rgba(0, 200, 83, 0.1) !important;
+  border: 1px solid #00c853 !important;
+}
+
+/* Bitcoin price display */
+.btc-price-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background-color: rgba(245, 162, 7, 0.1);
+  border: 1px solid #ffa500;
+  padding: 2px 6px;
+  border-radius: 5px;
+}
+
+.btc-price {
+  font-weight: bold;
+  font-size: 13px;
+  line-height: 1.2;
+}
+
+.btc-label {
+  margin-right: 4px;
+}
+
+.price-change {
+  font-size: 10px;
+  line-height: 1;
+}
+
+/* Top bar with mempool button, Fear & Greed, and BTC price */
+.top-bar {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 5px;
+}
+
+.menu-group {
+  display: flex;
+  align-items: center;
+}
+
+.menu-link {
+  color: #ffa500;
+  background: transparent;
+  border: 1px solid #ffa500;
+  border-radius: 5px;
+  padding: 5px 10px;
+  text-decoration: none;
+  font-size: 14px;
+  transition: background-color 0.3s, color 0.3s;
+}
+
+.menu-link:hover {
+  background-color: #ffa500;
+  color: #2c2b2b;
+}
+
+
+
+/* Ensure the popup size adjusts dynamically */
+details {
+  width: 100%;
+}
+
+details[open] {
+  margin-bottom: 10px;
+}
+
+/* Adjust to ensure proper spacing */
+.header {
+  width: 100%;
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.header h1 {
+  font-size: 18px;
+  margin: 0;
+  padding: 0;
+}
+
