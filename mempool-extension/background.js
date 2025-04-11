@@ -60,19 +60,33 @@ function loadAlertSettings() {
     });
 }
 
-// Call this at the start of your background.js
-loadAlertSettings();
-
 // Function to update the badge and store fetched fee data
 function updateBadgeAndStorage(data) {
+    if (!data || typeof data.fastestFee !== 'number') {
+        console.error('Invalid fee data:', data);
+        return;
+    }
+    
     const fastestFee = data.fastestFee;
     const badgeColor = getBadgeColor(fastestFee);
 
-    chrome.action.setBadgeText({ text: fastestFee.toString() });
-    chrome.action.setBadgeBackgroundColor({ color: badgeColor });
+    try {
+        chrome.action.setBadgeText({ text: fastestFee.toString() });
+        chrome.action.setBadgeBackgroundColor({ color: badgeColor });
+    } catch (e) {
+        console.error('Error updating badge:', e);
+    }
 
-    chrome.storage.local.set({ feeData: data, lastUpdated: Date.now() });
-    console.log('Badge updated with fee:', fastestFee, 'Color:', badgeColor);
+    try {
+        chrome.storage.local.set({ 
+            feeData: data, 
+            lastUpdated: Date.now(),
+            lastSuccessfulFetch: Date.now()
+        });
+        console.log('Badge updated with fee:', fastestFee, 'Color:', badgeColor);
+    } catch (e) {
+        console.error('Error storing data:', e);
+    }
     
     // Check if we should trigger an alert
     checkAndSendAlert(fastestFee);
@@ -104,16 +118,22 @@ function checkAndSendAlert(currentFee) {
     }
 }
 
-// Retry logic with exponential backoff
+// Retry logic with exponential backoff and improved error handling
 async function fetchWithRetries(url, retries = 3, backoff = 1000) {
     for (let i = 0; i < retries; i++) {
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+            const timeoutId = setTimeout(() => controller.abort(), 15000); // Increased timeout to 15 seconds
             
+            // Remove User-Agent header which might be causing 403 errors
             const response = await fetch(url, { 
                 signal: controller.signal,
-                cache: 'no-cache' // Avoid caching issues
+                cache: 'no-cache', // Avoid caching issues
+                mode: 'cors',
+                credentials: 'omit',
+                headers: {
+                    'Accept': 'application/json'
+                }
             });
             
             clearTimeout(timeoutId);
@@ -121,6 +141,12 @@ async function fetchWithRetries(url, retries = 3, backoff = 1000) {
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             
             const data = await response.json();
+            
+            // Validate data structure
+            if (!data || typeof data.fastestFee !== 'number') {
+                throw new Error('Invalid data format received');
+            }
+            
             return data;
         } catch (error) {
             console.error(`Fetch attempt ${i + 1} failed:`, error);
@@ -145,31 +171,48 @@ async function fetchDataAndUpdateBadge() {
         // Try to use cached data if we can't fetch new data
         const cachedData = await getCachedFeeData();
         
-        try {
-            // Try primary endpoint
-            const data = await fetchWithRetries('https://mempool.space/api/v1/fees/recommended');
-            console.log('Data fetched:', data);
-            updateBadgeAndStorage(data);
-        } catch (primaryError) {
-            console.log('Primary endpoint failed, trying backup endpoint...');
-            
+        // List of endpoints to try in order
+        const endpoints = [
+            'https://mempool.space/api/v1/fees/recommended',
+            'https://mempool.io/api/v1/fees/recommended',
+            'https://mempool.emzy.de/api/v1/fees/recommended',
+            'https://mempool.bisq.services/api/v1/fees/recommended'
+        ];
+        
+        let success = false;
+        let lastError = null;
+        
+        // Try each endpoint in sequence
+        for (const endpoint of endpoints) {
             try {
-                // Try backup endpoint
-                const data = await fetchWithRetries('https://mempool.io/api/v1/fees/recommended');
-                console.log('Data fetched from backup:', data);
+                console.log(`Trying endpoint: ${endpoint}`);
+                const data = await fetchWithRetries(endpoint);
+                console.log('Data fetched:', data);
                 updateBadgeAndStorage(data);
-            } catch (backupError) {
-                console.error('All endpoints failed, using cached data');
+                success = true;
+                break; // Exit the loop if successful
+            } catch (error) {
+                console.log(`Endpoint ${endpoint} failed:`, error);
+                lastError = error;
+            }
+        }
+        
+        // If all endpoints failed, use cached data
+        if (!success) {
+            console.error('All endpoints failed, using cached data');
+            
+            if (cachedData) {
+                console.log('Using cached data:', cachedData);
+                updateBadgeAndStorage(cachedData);
+            } else {
+                console.error('No cached data available, using default values');
+                // Create default data as a last resort
+                const defaultData = createDefaultFeeData();
+                updateBadgeAndStorage(defaultData);
                 
-                if (cachedData) {
-                    console.log('Using cached data:', cachedData);
-                    updateBadgeAndStorage(cachedData);
-                } else {
-                    console.error('No cached data available');
-                    // Set a default state for the badge
-                    chrome.action.setBadgeText({ text: '!' });
-                    chrome.action.setBadgeBackgroundColor({ color: '#888888' });
-                }
+                // Set a warning badge to indicate this is estimated
+                chrome.action.setBadgeText({ text: 'EST' });
+                chrome.action.setBadgeBackgroundColor({ color: '#888888' });
             }
         }
     } catch (error) {
@@ -177,12 +220,22 @@ async function fetchDataAndUpdateBadge() {
     }
 }
 
-// Function to get cached fee data
+// Function to get cached fee data with timestamp validation
 async function getCachedFeeData() {
     return new Promise((resolve) => {
-        chrome.storage.local.get('feeData', (result) => {
+        chrome.storage.local.get(['feeData', 'lastUpdated'], (result) => {
             if (result.feeData) {
-                resolve(result.feeData);
+                // Check if cache is still valid (less than 60 minutes old)
+                const now = Date.now();
+                const cacheAge = now - (result.lastUpdated || 0);
+                const maxCacheAge = 60 * 60 * 1000; // 60 minutes
+                
+                if (cacheAge < maxCacheAge) {
+                    resolve(result.feeData);
+                } else {
+                    console.log('Cache is too old, will try to refresh');
+                    resolve(result.feeData); // Still return it, but will try to refresh
+                }
             } else {
                 resolve(null);
             }
@@ -190,24 +243,129 @@ async function getCachedFeeData() {
     });
 }
 
-// Set up an alarm to fetch data every 1 minute
-chrome.alarms.create('fetchData', { periodInMinutes: 1 });
+// Add this function to create a mock response when everything fails
+function createDefaultFeeData() {
+    return {
+        fastestFee: 10,  // Default conservative values
+        halfHourFee: 5,
+        hourFee: 3,
+        minimumFee: 1,
+        economyFee: 1,
+        timestamp: Date.now()
+    };
+}
 
-// Listen for the alarm and fetch data when it triggers
-chrome.alarms.onAlarm.addListener((alarm) => {
-    if (alarm.name === 'fetchData') {
-        fetchDataAndUpdateBadge();
-    }
-});
-
-// Initial fetch when the service worker starts
-fetchDataAndUpdateBadge();
-
-// Add to background.js
+// Enhanced caching setup
 function setupCaching() {
-    chrome.storage.local.get('feeDataCache', data => {
+    chrome.storage.local.get(['feeDataCache', 'cacheTime'], data => {
         if (!data.feeDataCache) {
-            chrome.storage.local.set({ feeDataCache: {}, cacheTime: Date.now() });
+            chrome.storage.local.set({ 
+                feeDataCache: {}, 
+                cacheTime: Date.now(),
+                lastNetworkCheck: Date.now()
+            });
         }
     });
 }
+
+// Modify the isOnline function to try all of your endpoints
+function isOnline() {
+    // Try all of our endpoints to check online status
+    const testEndpoints = [
+        'https://mempool.space/api/v1/fees/recommended',
+        'https://mempool.io/api/v1/fees/recommended',
+        'https://mempool.emzy.de/api/v1/fees/recommended',
+        'https://mempool.bisq.services/api/v1/fees/recommended'
+    ];
+    
+    // We'll consider online if any endpoint responds
+    const promises = testEndpoints.map(url => 
+        fetch(url, { 
+            method: 'HEAD',
+            mode: 'no-cors',
+            cache: 'no-store'
+        })
+        .then(() => true)
+        .catch(() => false)
+    );
+    
+    return Promise.all(promises)
+        .then(results => results.some(result => result === true))
+        .catch(() => false);
+}
+
+// Listen for chrome.runtime.onStartup instead of using window events
+chrome.runtime.onStartup.addListener(() => {
+    console.log('Extension started up, refreshing data...');
+    fetchDataAndUpdateBadge();
+});
+
+// Initialize caching and settings
+function initialize() {
+    setupCaching();
+    loadAlertSettings();
+    
+    // Set up an alarm to fetch data at varying frequencies based on failure patterns
+    let fetchFrequency = 1; // Default 1 minute
+    let consecutiveFailures = 0;
+    
+    chrome.alarms.create('fetchData', { periodInMinutes: fetchFrequency });
+    
+    // Also create an alarm to check network status periodically
+    chrome.alarms.create('checkNetwork', { periodInMinutes: 5 });
+    
+    // Initial fetch when the service worker starts
+    fetchDataAndUpdateBadge()
+        .then(() => {
+            consecutiveFailures = 0; // Reset on success
+            if (fetchFrequency > 1) {
+                fetchFrequency = 1; // Return to normal frequency
+                chrome.alarms.create('fetchData', { periodInMinutes: fetchFrequency });
+            }
+        })
+        .catch(() => {
+            consecutiveFailures++;
+            // Increase interval on continued failures (up to 30 min)
+            if (consecutiveFailures > 5) {
+                fetchFrequency = Math.min(fetchFrequency * 2, 30);
+                chrome.alarms.create('fetchData', { periodInMinutes: fetchFrequency });
+            }
+        });
+    
+    // Setup listener for the alarm
+    chrome.alarms.onAlarm.addListener((alarm) => {
+        if (alarm.name === 'fetchData') {
+            fetchDataAndUpdateBadge()
+                .then(() => {
+                    consecutiveFailures = 0; // Reset on success
+                    if (fetchFrequency > 1) {
+                        fetchFrequency = 1; // Return to normal frequency
+                        chrome.alarms.create('fetchData', { periodInMinutes: fetchFrequency });
+                    }
+                })
+                .catch(() => {
+                    consecutiveFailures++;
+                    // Increase interval on continued failures (up to 30 min)
+                    if (consecutiveFailures > 5) {
+                        fetchFrequency = Math.min(fetchFrequency * 2, 30);
+                        chrome.alarms.create('fetchData', { periodInMinutes: fetchFrequency });
+                    }
+                });
+        } else if (alarm.name === 'checkNetwork') {
+            // Check network status and update badge if needed
+            isOnline().then(online => {
+                if (online) {
+                    fetchDataAndUpdateBadge();
+                } else {
+                    chrome.action.setBadgeText({ text: 'OFF' });
+                    chrome.action.setBadgeBackgroundColor({ color: '#888888' });
+                }
+            });
+        }
+    });
+    
+    console.log('Bitcoin Fee Tracker initialized successfully');
+}
+
+// Start the initialization
+initialize();
