@@ -82,6 +82,9 @@ function init() {
   // Setup details toggle for dynamic height
   setupDetailsToggle();
   
+  // Add theme toggle setup
+  setupThemeToggle();
+  
   console.log("Popup initialization complete");
 }
 
@@ -952,6 +955,33 @@ function setupDetailsToggle() {
     
     // Additional animation effects can be added here if needed
     console.log('Details toggled:', details.open ? 'open' : 'closed');
+  });
+}
+
+// Theme toggle functionality
+function setupThemeToggle() {
+  const toggleBtn = document.getElementById('themeToggle');
+  if (!toggleBtn) return;
+  
+  // Check if a theme preference is stored
+  chrome.storage.local.get('theme', (result) => {
+    if (result.theme === 'light') {
+      document.body.classList.add('light-mode');
+    }
+  });
+  
+  toggleBtn.addEventListener('click', () => {
+    const isLightMode = document.body.classList.toggle('light-mode');
+    
+    // Save the theme preference
+    chrome.storage.local.set({ theme: isLightMode ? 'light' : 'dark' });
+    
+    // Force a redraw of the chart if it exists
+    if (window.feeChart) {
+      setTimeout(() => {
+        window.feeChart.update();
+      }, 100);
+    }
   });
 }
 
