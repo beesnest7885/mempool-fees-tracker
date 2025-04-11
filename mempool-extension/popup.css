@@ -1,18 +1,80 @@
+/* Modern color scheme with better contrast */
+:root {
+  --primary-color: #f7931a; /* Bitcoin orange */
+  --primary-light: rgba(247, 147, 26, 0.1);
+  --primary-border: rgba(247, 147, 26, 0.5);
+  --background-dark: #1e1e1e;
+  --background-gradient: linear-gradient(135deg, #2a2a2a, #1a1a1a);
+  --text-color: #f8f8f8;
+  --alert-green: #00c853;
+  --alert-green-bg: rgba(0, 200, 83, 0.1);
+  --card-bg: rgba(40, 40, 40, 0.6);
+  --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  
+  /* Light theme colors */
+  --light-background-gradient: linear-gradient(135deg, #f5f5f5, #e8e8e8);
+  --light-text-color: #222222;
+  --light-card-bg: rgba(255, 255, 255, 0.7);
+  --light-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --light-primary-border: rgba(247, 147, 26, 0.3);
+}
+
+/* Light theme class to toggle */
+body.light-mode {
+  background: var(--light-background-gradient);
+  color: var(--light-text-color);
+}
+
+body.light-mode .fee-alert-summary,
+body.light-mode .lower-fee,
+body.light-mode .btc-price-container,
+body.light-mode #chartContainer,
+body.light-mode .fastest-fee,
+body.light-mode .fee-alert-content,
+body.light-mode .current-alert,
+body.light-mode .threshold-input-container {
+  background-color: var(--light-card-bg);
+  box-shadow: var(--light-shadow);
+}
+
+body.light-mode #status,
+body.light-mode .fee-alert-summary,
+body.light-mode .built-by {
+  color: var(--light-text-color);
+}
+
+body.light-mode .time-window-btn,
+body.light-mode #alertThreshold {
+  color: var(--light-text-color);
+}
+
+body.light-mode .time-window-buttons {
+  background: rgba(200, 200, 200, 0.4);
+}
+
+body.light-mode .lower-fee,
+body.light-mode #chartContainer,
+body.light-mode .fee-alert-summary,
+body.light-mode .current-alert,
+body.light-mode .fee-alert-content {
+  border-color: var(--light-primary-border);
+}
+
 body {
-  background: linear-gradient(135deg, #2c2b2b, #1e1e1e); /* Subtle gradient */
-  color: #ffa500; /* Orange text */
-  font-family: Arial, sans-serif;
+  background: var(--background-gradient);
+  color: var(--text-color);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* More modern font */
   margin: 0;
-  padding: 5px;
-  width: 350px;
-  min-height: 400px; /* Set minimum height */
-  max-height: max-content; /* Dynamic height */
+  padding: 12px;
+  width: 380px; /* Increased from 360px */
+  min-height: 480px; /* Increased from 420px */
+  max-height: max-content;
   display: flex;
   flex-direction: column;
   align-items: center;
   box-sizing: border-box;
-  overflow-y: auto; /* Allow vertical scrolling */
-  overflow-x: hidden; /* Prevent horizontal scrolling */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 h1 {
@@ -27,24 +89,21 @@ h1 {
 }
 
 #icon {
-  width: 32px; /* Thumbnail size */
+  width: 28px;
   height: auto;
-  margin-right: 10px;
-  transition: transform 0.3s ease-in-out; /* Animation */
-  transform-origin: center center; /* Center the rotation */
+  margin-right: 8px;
+  transition: transform 0.3s ease;
 }
 
-#icon:hover {
-  transform: rotate(20deg); /* Only rotate, no scaling */
+.noderock-link:hover #icon {
+  transform: rotate(15deg);
 }
 
 .bitcoin-logo {
-  width: 20px;
+  width: 24px;
   height: auto;
-  margin-right: 0; /* Remove right margin */
+  margin-right: 6px;
   vertical-align: middle; /* Align in the middle of the text */
-  position: relative;
-  top: -1px; /* Fine-tune vertical positioning */
 }
 
 .icon-text-container {
@@ -62,19 +121,23 @@ h1 {
 }
 
 .menu-link {
-  color: #ffa500;
+  color: var(--primary-color);
   background: transparent;
-  border: 1px solid #ffa500;
-  border-radius: 5px;
-  padding: 5px 10px;
+  border: 1px solid var(--primary-color);
+  border-radius: 6px;
+  padding: 6px 12px;
   text-decoration: none;
-  font-size: 14px;
-  transition: background-color 0.3s, color 0.3s;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
 .menu-link:hover {
-  background-color: #ffa500;
-  color: #2c2b2b;
+  background-color: var(--primary-color);
+  color: #000;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
 }
 
 .fee-container {
@@ -82,69 +145,92 @@ h1 {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 10px;
+  margin-bottom: 12px; /* Slightly reduced */
+}
+
+.fee-container:hover .fastest-fee {
+  border-color: var(--primary-color);
 }
 
 .fastest-fee {
-  width: 90%;
-  background-color: rgba(245, 162, 7, 0.1); /* Light orange background */
-  border: 2px solid #ffa500; /* Orange border */
-  padding: 10px;
-  border-radius: 10px; /* Rounded corners */
+  width: 95%;
+  background-color: var(--card-bg);
+  border: 1px solid var(--primary-color);
+  padding: 10px; /* Slightly reduced */
+  border-radius: 8px;
   text-align: center;
   font-size: 20px;
-  font-weight: bold;
+  font-weight: 600;
   line-height: 1.5;
-  margin-bottom: 10px;
-  box-shadow: 0 2px 4px rgba(200, 117, 0, 0.5); /* Add shadow for depth */
+  margin-bottom: 10px; /* Slightly reduced */
+  box-shadow: var(--shadow);
+  transition: transform 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.fastest-fee:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-color), transparent);
 }
 
 .lower-fees {
   display: flex;
-  justify-content: space-around;
-  width: 100%;
-  margin-bottom: 10px;
+  justify-content: space-between;
+  width: 95%;
+  gap: 8px;
 }
 
 .lower-fee {
   flex: 1;
-  margin: 0 5px;
-  padding: 5px;
-  border: 2px solid #ffa500;
-  background-color: rgba(255, 165, 0, 0.05);
-  border-radius: 10px;
+  padding: 10px 5px;
+  border: 1px solid var(--primary-border);
+  background-color: var(--card-bg);
+  border-radius: 8px;
   text-align: center;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  box-shadow: 0 2px 4px rgba(255, 165, 0, 0.5);
-  transition: background-color 0.3s, box-shadow 0.3s;
+  box-shadow: var(--shadow);
+  transition: all 0.2s ease;
 }
 
 .lower-fee:hover {
-  background-color: rgba(255, 165, 0, 0.15); /* Brighter on hover */
-  box-shadow: 0 4px 8px rgba(255, 165, 0, 0.7); /* Deeper shadow */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+  border-color: var(--primary-color);
 }
 
 .fee-label {
-  font-weight: bold;
+  font-weight: 500;
   white-space: nowrap;
+  font-size: 11px;
+  opacity: 0.9;
+  letter-spacing: 0.3px;
 }
 
 .fee-value {
   font-size: 16px;
-  font-weight: bold;
+  font-weight: 600;
   margin-top: 5px;
 }
 
 #chartContainer {
-  width: 100%;
-  height: 150px;
-  background-color: #343434;
+  width: 95%;
+  height: 160px;
+  background-color: var(--card-bg);
   display: block;
   position: relative;
-  margin: 10px 0;
-  border-radius: 5px;
+  margin: 8px 0 12px; /* Reduced margins */
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--primary-border);
 }
 
 #myChart {
@@ -152,38 +238,38 @@ h1 {
   position: relative;
   width: 100% !important; 
   height: 100% !important;
+  padding: 5px;
 }
 
+/* Add subtle animation to status updates */
 #status {
-  margin-top: 3px;
-  margin-bottom: 3px;
-  color: #ffa500;
+  margin: 5px 0;
+  color: var(--primary-color);
   text-align: center;
   width: 100%;
-  font-size: 12px; /* Smaller font */
-  min-height: 16px; /* Fixed height to prevent layout shifts */
+  font-size: 12px;
+  min-height: 16px;
+  transition: all 0.3s ease;
 }
 
 .noderock-link {
   display: flex;
   align-items: center;
   text-decoration: none;
-  color: #ffa500;
-  margin-right: 10px;
-  /* Remove the transform transition to prevent resizing */
+  color: var(--primary-color);
+  transition: all 0.3s ease;
+  opacity: 0.9;
 }
 
 .noderock-link:hover {
-  /* Remove transform:scale to prevent resizing */
-  /* Instead, use a subtle effect that doesn't change dimensions */
-  filter: brightness(1.2);
+  opacity: 1;
 }
 
 .built-by {
   font-size: 12px;
-  margin-left: 5px;
-  font-weight: bold;
-  color: #ffa500;
+  font-weight: 500;
+  color: var(--text-color);
+  letter-spacing: 0.3px;
 }
 
 .time-window-selector {
@@ -191,171 +277,200 @@ h1 {
   display: flex;
   justify-content: center;
   align-items: center;
-  margin-bottom: 5px;
+  margin-bottom: 8px; /* Reduced */
 }
 
 .time-window-label {
-  margin-right: 10px;
-  font-size: 14px;
-  color: #ffa500;
+  margin-right: 12px;
+  font-size: 13px;
+  color: var(--text-color);
+  font-weight: 500;
 }
 
 .time-window-buttons {
   display: flex;
-  gap: 5px;
+  gap: 4px;
+  background: rgba(40, 40, 40, 0.4);
+  border-radius: 6px;
+  padding: 3px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
 }
 
 .time-window-btn {
   background: transparent;
-  border: 1px solid #ffa500;
-  color: #ffa500;
-  border-radius: 5px;
-  padding: 3px 8px;
+  border: none;
+  color: var(--text-color);
+  border-radius: 4px;
+  padding: 4px 10px;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .time-window-btn:hover {
-  background-color: rgba(255, 165, 0, 0.2);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .time-window-btn.active {
-  background-color: #ffa500;
+  background-color: var(--primary-color);
   color: #000;
-  font-weight: bold;
+  font-weight: 500;
 }
 
 /* Add fixed dimensions to footer to prevent layout shifts */
 .footer {
   width: 100%;
-  height: 32px; /* Match the height of the icon */
+  height: 36px;
   display: flex;
   justify-content: center;
-  padding: 5px 0;
-  margin-top: 5px;
-  border-top: 1px solid rgba(255, 165, 0, 0.3);
+  padding: 8px 0;
+  margin-top: 8px; /* Reduced */
+  margin-bottom: 5px; /* Add bottom margin */
+  border-top: 1px solid var(--primary-border);
 }
 
 /* Fee Alert styles - more compact layout */
 .fee-alert-container {
-  width: 100%;
-  margin: 3px 0;
-  border-radius: 5px;
+  width: 95%;
+  margin: 2px 0 8px; /* Reduced */
+  border-radius: 8px;
   overflow: hidden;
 }
 
 .fee-alert-summary {
-  background-color: rgba(255, 165, 0, 0.1);
-  border: 1px solid #ffa500;
-  color: #ffa500;
-  padding: 6px 10px;
-  border-radius: 5px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--primary-border);
+  color: var(--primary-color);
+  padding: 8px 12px;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 500;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.fee-alert-summary:hover {
+  background-color: rgba(50, 50, 50, 0.7);
 }
 
 .fee-alert-summary::after {
   content: "▼";
-  font-size: 10px;
+  font-size: 9px;
+  opacity: 0.8;
 }
 
 details[open] .fee-alert-summary::after {
   content: "▲";
 }
 
-.fee-alert-content {
-  background-color: rgba(255, 165, 0, 0.05);
-  border: 1px solid #ffa500;
-  border-top: none;
-  border-radius: 0 0 5px 5px;
-  padding: 6px;
-  animation: expandContent 0.3s ease-in-out;
-}
-
+/* Add more sophisticated animation for content expansion */
 @keyframes expandContent {
   from { 
     max-height: 0;
     opacity: 0;
+    transform: translateY(-5px);
   }
   to { 
-    max-height: 200px;
+    max-height: 300px;
     opacity: 1;
+    transform: translateY(0);
   }
 }
 
-/* Horizontal layout for the form */
+.fee-alert-content {
+  background-color: rgba(40, 40, 40, 0.4);
+  border: 1px solid var(--primary-border);
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  padding: 10px;
+  animation: expandContent 0.3s ease-in-out;
+}
+
 .fee-alert-form {
   display: grid;
   grid-template-columns: auto 1fr auto auto;
-  grid-gap: 6px;
+  grid-gap: 6px; /* Reduced */
   align-items: center;
-}
-
-.fee-alert-form label {
-  font-size: 12px;
-  white-space: nowrap;
 }
 
 .threshold-input-container {
   display: flex;
   align-items: center;
-  border: 1px solid #ffa500;
-  border-radius: 3px;
+  border: 1px solid var(--primary-border);
+  border-radius: 4px;
   overflow: hidden;
-  background: rgba(255, 165, 0, 0.1);
-  height: 24px;
-  width: 65px;
+  background: rgba(40, 40, 40, 0.6);
+  height: 28px;
+  width: 70px;
 }
 
 #alertThreshold {
   flex-grow: 1;
   border: none;
-  padding: 4px;
+  padding: 4px 6px;
   background: transparent;
-  color: #ffa500;
+  color: var(--text-color);
   text-align: right;
   width: 40px;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .fee-unit {
-  padding: 0 4px;
-  background: rgba(255, 165, 0, 0.2);
-  color: #ffa500;
-  font-size: 10px;
+  padding: 0 6px;
+  background: rgba(247, 147, 26, 0.2);
+  color: var(--primary-color);
+  font-size: 11px;
+  font-weight: 500;
 }
 
 #setAlertBtn, #clearAlertBtn {
-  padding: 4px 6px;
-  font-size: 11px;
+  padding: 4px 8px;
+  font-size: 12px;
   white-space: nowrap;
+  border-radius: 4px;
+  border: 1px solid var(--primary-border);
+  background: var(--card-bg);
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+#setAlertBtn {
+  background-color: rgba(247, 147, 26, 0.2);
+}
+
+#setAlertBtn:hover {
+  background-color: var(--primary-color);
+  color: #000;
+}
+
+#clearAlertBtn:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 .current-alert {
   grid-column: 1 / -1;
-  padding: 5px;
-  border-radius: 3px;
-  background-color: rgba(255, 165, 0, 0.1);
+  padding: 8px;
+  border-radius: 4px;
+  background-color: rgba(40, 40, 40, 0.6);
   text-align: center;
-  color: #ffa500;
+  color: var(--text-color);
   font-size: 12px;
-  margin-top: 4px;
+  margin-top: 8px;
+  border: 1px solid var(--primary-border);
 }
 
-/* Style for active alert in summary */
 .alert-active-summary {
-  background-color: rgba(0, 200, 83, 0.1) !important;
-  border-color: #00c853 !important;
+  background-color: var(--alert-green-bg) !important;
+  border-color: var(--alert-green) !important;
 }
 
 .alert-active {
-  background-color: rgba(0, 200, 83, 0.1) !important;
-  border: 1px solid #00c853 !important;
+  background-color: var(--alert-green-bg) !important;
+  border: 1px solid var(--alert-green) !important;
 }
 
 /* Bitcoin price display */
@@ -363,25 +478,42 @@ details[open] .fee-alert-summary::after {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  background-color: rgba(245, 162, 7, 0.1);
-  border: 1px solid #ffa500;
-  padding: 2px 6px;
-  border-radius: 5px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--primary-border);
+  padding: 6px 10px;
+  border-radius: 6px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition: all 0.2s ease;
+}
+
+.btc-price-container:hover {
+  border-color: var(--primary-color);
+  transform: translateY(-1px);
 }
 
 .btc-price {
-  font-weight: bold;
+  font-weight: 600;
   font-size: 13px;
   line-height: 1.2;
 }
 
 .btc-label {
   margin-right: 4px;
+  color: var(--primary-color);
 }
 
 .price-change {
-  font-size: 10px;
+  font-size: 11px;
   line-height: 1;
+  margin-top: 2px;
+}
+
+.price-up {
+  color: #00e676;
+}
+
+.price-down {
+  color: #ff5252;
 }
 
 /* Top bar with mempool button, Fear & Greed, and BTC price */
@@ -390,8 +522,9 @@ details[open] .fee-alert-summary::after {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 10px;
-  gap: 5px;
+  margin-bottom: 15px;
+  gap: 8px;
+  padding: 0 2px;
 }
 
 .menu-group {
@@ -399,43 +532,122 @@ details[open] .fee-alert-summary::after {
   align-items: center;
 }
 
-.menu-link {
-  color: #ffa500;
-  background: transparent;
-  border: 1px solid #ffa500;
-  border-radius: 5px;
-  padding: 5px 10px;
-  text-decoration: none;
-  font-size: 14px;
-  transition: background-color 0.3s, color 0.3s;
-}
-
-.menu-link:hover {
-  background-color: #ffa500;
-  color: #2c2b2b;
-}
-
-
-
 /* Ensure the popup size adjusts dynamically */
 details {
   width: 100%;
 }
 
 details[open] {
-  margin-bottom: 10px;
+  margin-bottom: 8px; /* Reduced */
 }
 
 /* Adjust to ensure proper spacing */
 .header {
   width: 100%;
   text-align: center;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--primary-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .header h1 {
-  font-size: 18px;
+  font-size: 20px;
   margin: 0;
   padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  position: relative;
+  flex-grow: 1;
+  margin-right: 28px; /* Make space for the toggle */
+}
+
+.bitcoin-logo {
+  width: 24px;
+  height: auto;
+  vertical-align: middle;
+  margin-right: 0; /* Remove right margin */
+  position: relative;
+  top: -1px; /* Fine-tune vertical alignment */
+}
+
+.title-text {
+  margin-left: 1px; /* Pull text closer to logo */
+}
+
+/* Add visual feedback when rates update */
+@keyframes pulseUpdate {
+  0% { opacity: 0.7; }
+  50% { opacity: 1; }
+  100% { opacity: 0.7; }
+}
+
+.updating {
+  animation: pulseUpdate 1.5s infinite;
+}
+
+/* Add after your header styles */
+.theme-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  margin-left: auto;
+  margin-right: 6px;
+  padding: 0;
+  position: relative;
+}
+
+.theme-toggle:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+body.light-mode .theme-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.theme-toggle svg {
+  width: 18px;
+  height: 18px;
+  fill: var(--text-color);
+  transition: all 0.3s ease;
+}
+
+body.light-mode .theme-toggle svg {
+  fill: var(--light-text-color);
+}
+
+.theme-toggle .moon {
+  display: block;
+}
+
+.theme-toggle .sun {
+  display: none;
+}
+
+body.light-mode .theme-toggle .moon {
+  display: none;
+}
+
+body.light-mode .theme-toggle .sun {
+  display: block;
+}
+
+/* Make the popup more flexible with height */
+@media (min-height: 500px) {
+  body {
+    min-height: 500px;
+  }
 }
 
