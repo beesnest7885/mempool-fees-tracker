@@ -198,12 +198,18 @@ h1 {
   justify-content: flex-start;
   box-shadow: var(--shadow);
   transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.lower-fee:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
-  border-color: var(--primary-color);
+.lower-fee:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-color), transparent);
 }
 
 .fee-label {
@@ -231,6 +237,17 @@ h1 {
   overflow: hidden;
   box-shadow: var(--shadow);
   border: 1px solid var(--primary-border);
+}
+
+#chartContainer:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-color), transparent);
+  z-index: 1;
 }
 
 #myChart {
@@ -387,6 +404,18 @@ details[open] .fee-alert-summary::after {
   border-radius: 0 0 6px 6px;
   padding: 10px;
   animation: expandContent 0.3s ease-in-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.fee-alert-content:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-color), transparent);
 }
 
 .fee-alert-form {
@@ -461,16 +490,31 @@ details[open] .fee-alert-summary::after {
   font-size: 12px;
   margin-top: 8px;
   border: 1px solid var(--primary-border);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.alert-active-summary {
-  background-color: var(--alert-green-bg) !important;
-  border-color: var(--alert-green) !important;
+.current-alert:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-color), transparent);
 }
 
 .alert-active {
-  background-color: var(--alert-green-bg) !important;
-  border: 1px solid var(--alert-green) !important;
+  color: var(--alert-green);
+  font-weight: 600;
+}
+
+.alert-inactive {
+  color: #888;
+  font-weight: 400;
 }
 
 /* Bitcoin price display */
@@ -484,11 +528,18 @@ details[open] .fee-alert-summary::after {
   border-radius: 6px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
   transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
 }
 
-.btc-price-container:hover {
-  border-color: var(--primary-color);
-  transform: translateY(-1px);
+.btc-price-container:after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 3px;
+  background: linear-gradient(90deg, var(--primary-color), transparent);
 }
 
 .btc-price {
@@ -649,5 +700,15 @@ body.light-mode .theme-toggle .sun {
   body {
     min-height: 500px;
   }
+}
+
+@keyframes highlight {
+  0% { background-color: transparent; }
+  50% { background-color: rgba(247, 147, 26, 0.3); }
+  100% { background-color: transparent; }
+}
+
+.updated {
+  animation: highlight 1s ease-out;
 }
 
