@@ -1,3 +1,5 @@
+import { fetchFromEndpoints } from './api.js';
+
 const BADGE_COLORS = {
     LOW: '#00FF00',    // Green
     MEDIUM: '#FFA500', // Orange
@@ -19,34 +21,27 @@ let alertTriggered = false;
 
 // Handle messages from the popup
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-  console.log("Background received message:", message);
-  
-  if (message.action === "setFeeAlert") {
-    feeAlertThreshold = message.threshold;
-    alertTriggered = false;
-    
-    chrome.storage.local.set({ feeAlertThreshold, alertTriggered }, () => {
-      console.log(`Fee alert set: ${feeAlertThreshold} sat/vB`);
-      // Send a response back to the popup
-      sendResponse({ success: true, message: "Alert set successfully" });
-    });
-    
-    // Return true to indicate you'll send a response asynchronously
-    return true;
-  } 
-  else if (message.action === "clearFeeAlert") {
-    feeAlertThreshold = null;
-    alertTriggered = false;
-    
-    chrome.storage.local.remove(['feeAlertThreshold', 'alertTriggered'], () => {
-      console.log('Fee alert cleared');
-      // Send a response back to the popup
-      sendResponse({ success: true, message: "Alert cleared successfully" });
-    });
-    
-    // Return true to indicate you'll send a response asynchronously
-    return true;
-  }
+    console.log("Background received message:", message);
+
+    if (message.action === "setFeeAlert") {
+        feeAlertThreshold = message.threshold;
+        alertTriggered = false;
+
+        chrome.storage.local.set({ feeAlertThreshold, alertTriggered }, () => {
+            console.log(`Fee alert set: ${feeAlertThreshold} sat/vB`);
+            sendResponse({ success: true, message: "Alert set successfully" });
+        });
+        return true; // Indicate asynchronous response
+    } else if (message.action === "clearFeeAlert") {
+        feeAlertThreshold = null;
+        alertTriggered = false;
+
+        chrome.storage.local.remove(['feeAlertThreshold', 'alertTriggered'], () => {
+            console.log('Fee alert cleared');
+            sendResponse({ success: true, message: "Alert cleared successfully" });
+        });
+        return true; // Indicate asynchronous response
+    }
 });
 
 // Load alert settings when service worker starts
@@ -166,57 +161,39 @@ async function fetchWithRetries(url, retries = 3, backoff = 1000) {
 // Fetch data and update badge
 async function fetchDataAndUpdateBadge() {
     try {
-        console.log('Fetching data...');
-        
-        // Try to use cached data if we can't fetch new data
-        const cachedData = await getCachedFeeData();
-        
-        // List of endpoints to try in order
-        const endpoints = [
-            'https://mempool.space/api/v1/fees/recommended',
-            'https://mempool.io/api/v1/fees/recommended',
-            'https://mempool.emzy.de/api/v1/fees/recommended',
-            'https://mempool.bisq.services/api/v1/fees/recommended'
-        ];
-        
-        let success = false;
-        let lastError = null;
-        
-        // Try each endpoint in sequence
-        for (const endpoint of endpoints) {
-            try {
-                console.log(`Trying endpoint: ${endpoint}`);
-                const data = await fetchWithRetries(endpoint);
-                console.log('Data fetched:', data);
-                updateBadgeAndStorage(data);
-                success = true;
-                break; // Exit the loop if successful
-            } catch (error) {
-                console.log(`Endpoint ${endpoint} failed:`, error);
-                lastError = error;
-            }
-        }
-        
-        // If all endpoints failed, use cached data
-        if (!success) {
-            console.error('All endpoints failed, using cached data');
-            
+        console.log('Checking online status...');
+        const online = await isOnline();
+        if (!online) {
+            console.log('Offline mode detected. Using cached data.');
+            const cachedData = await getCachedFeeData();
             if (cachedData) {
-                console.log('Using cached data:', cachedData);
                 updateBadgeAndStorage(cachedData);
             } else {
-                console.error('No cached data available, using default values');
-                // Create default data as a last resort
-                const defaultData = createDefaultFeeData();
-                updateBadgeAndStorage(defaultData);
-                
-                // Set a warning badge to indicate this is estimated
-                chrome.action.setBadgeText({ text: 'EST' });
-                chrome.action.setBadgeBackgroundColor({ color: '#888888' });
+                console.error('No cached data available. Cannot update badge.');
             }
+            return;
         }
+
+        console.log('Fetching data...');
+        const data = await fetchFromEndpoints();
+        updateBadgeAndStorage(data);
     } catch (error) {
         console.error('Error fetching and updating badge:', error);
+
+        // Use cached data as a fallback
+        const cachedData = await getCachedFeeData();
+        if (cachedData) {
+            console.log('Using cached data:', cachedData);
+            updateBadgeAndStorage(cachedData);
+        } else {
+            console.error('No cached data available, using default values');
+            const defaultData = createDefaultFeeData();
+            updateBadgeAndStorage(defaultData);
+
+            // Set a warning badge to indicate this is estimated
+            chrome.action.setBadgeText({ text: 'EST' });
+            chrome.action.setBadgeBackgroundColor({ color: '#888888' });
+        }
     }
 }
 
@@ -270,17 +247,15 @@ function setupCaching() {
 
 // Modify the isOnline function to try all of your endpoints
 function isOnline() {
-    // Try all of our endpoints to check online status
     const testEndpoints = [
         'https://mempool.space/api/v1/fees/recommended',
         'https://mempool.io/api/v1/fees/recommended',
         'https://mempool.emzy.de/api/v1/fees/recommended',
         'https://mempool.bisq.services/api/v1/fees/recommended'
     ];
-    
-    // We'll consider online if any endpoint responds
-    const promises = testEndpoints.map(url => 
-        fetch(url, { 
+
+    const promises = testEndpoints.map(url =>
+        fetch(url, {
             method: 'HEAD',
             mode: 'no-cors',
             cache: 'no-store'
@@ -288,7 +263,7 @@ function isOnline() {
         .then(() => true)
         .catch(() => false)
     );
-    
+
     return Promise.all(promises)
         .then(results => results.some(result => result === true))
         .catch(() => false);
@@ -300,8 +275,9 @@ chrome.runtime.onStartup.addListener(() => {
     fetchDataAndUpdateBadge();
 });
 
-// Initialize caching and settings
+// Initialize the service worker
 function initialize() {
+    console.log('Initializing background service worker...');
     setupCaching();
     loadAlertSettings();
     
