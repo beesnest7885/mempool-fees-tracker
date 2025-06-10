@@ -69,8 +69,13 @@
   <div id="chartContainer">
     <canvas id="myChart"></canvas>
   </div>
-  
+  <div id="lastBlockMined" style="width:95%;text-align:center;font-size:13px;color:#aaa;margin-bottom:2px;">Last block: Loading...</div>
   <div id="status">Fetching latest 24 hours of fee data...</div>
+  
+  <div id="error-message" class="error-message" style="display: none;">
+    <span id="error-text">Error loading data</span>
+    <button id="retry-button">Retry</button>
+  </div>
   
   <div class="fee-alert-container">
     <details>
@@ -84,9 +89,10 @@
           </div>
           <button id="setAlertBtn">Set</button>
           <button id="clearAlertBtn" class="clear-btn">Clear</button>
-          <div id="currentAlert" class="current-alert">
-            No alerts set
-          </div>
+        </div>
+        <div class="current-alert">
+          <div>Threshold: <span id="currentAlert">None</span></div>
+          <div>Status: <span id="alertStatus" class="alert-inactive">Inactive</span></div>
         </div>
       </div>
     </details>
@@ -99,10 +105,9 @@
     </a>
   </footer>
   
-  <script src="error-handler.js"></script>
   <script src="libs/chart.umd.js"></script>
-  <script src="libs/chartjs-adapter-date-fns.js"></script>
-  <script src="popup.js"></script>
-  <script src="chart-loader.js"></script>
+  <script type="module" src="popup.js"></script>
+  <!-- Remove chart-loader.js if you're using the simplified chart setup -->
+  
 </body>
 </html>
